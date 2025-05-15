@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DamageEffectResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardEffectsScripts/DamageEffectResource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+damage = 25
+damage_type = "fire"
+is_area_effect = true
+radius = 100.0
+is_dot = true
+tick_interval = 1.0
+is_projectile = true
+projectile_speed = 200.0
+projectile_range = 400.0
+chain_targets = 0
+chain_range = 0.0

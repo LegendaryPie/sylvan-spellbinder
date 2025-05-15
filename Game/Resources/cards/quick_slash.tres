@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardResource.gd" id="1_script"]
+[ext_resource type="Resource" path="res://Game/Resources/cards/effects/slash_effect.tres" id="2_effect"]
+
+[resource]
+script = ExtResource("1_script")
+id = "quick_slash"
+name = "Quick Slash"
+type = "attack"
+energy_cost = 1
+description = "A swift slash dealing 15 physical damage."
+texture_path = "res://Assets/icon.svg"
+rarity = "common"
+effects = [ExtResource("2_effect")]
+cooldown = 0.0
+cast_sound_path = "res://Assets/sounds/cards/slash.wav"

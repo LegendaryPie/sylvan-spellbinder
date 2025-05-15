@@ -1,0 +1,62 @@
+[gd_scene load_steps=7 format=3 uid="uid://c0agtt1ek6eo0"]
+
+[ext_resource type="Script" uid="uid://dg657s2aw8iap" path="res://Game/Scripts/game.gd" id="1_qxrlw"]
+[ext_resource type="PackedScene" uid="uid://b4777o2q4q6t" path="res://Game/Scenes/player.tscn" id="2_wrm1d"]
+[ext_resource type="PackedScene" uid="uid://onpdq474nw7j" path="res://Game/Scenes/enemy.tscn" id="3_n8vql"]
+[ext_resource type="PackedScene" uid="uid://b7xnybq1bvr44" path="res://Game/Scenes/game_ui.tscn" id="4_u5k3p"]
+[ext_resource type="Script" uid="uid://bfuphgrvchqg2" path="res://Game/Scripts/enemy_database.gd" id="enemy_database"]
+[ext_resource type="Script" uid="uid://bhdm4w3ksgpma" path="res://Game/Scripts/enemy_manager.gd" id="enemy_manager"]
+
+[node name="Game" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_qxrlw")
+
+[node name="Player" parent="." instance=ExtResource("2_wrm1d")]
+position = Vector2(640, 360)
+
+[node name="EnemyManager" type="Node" parent="."]
+script = ExtResource("enemy_manager")
+max_enemies = 8
+spawn_interval = 3.0
+enemy_scene = ExtResource("3_n8vql")
+
+[node name="EnemyDatabase" type="Node" parent="EnemyManager"]
+script = ExtResource("enemy_database")
+
+[node name="SpawnPoints" type="Node" parent="."]
+
+[node name="Marker2D" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(100, 100)
+
+[node name="Marker2D2" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1180, 100)
+
+[node name="Marker2D3" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(100, 620)
+
+[node name="Marker2D4" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1180, 620)
+
+[node name="GameUI" parent="." instance=ExtResource("4_u5k3p")]
+
+[node name="TopRightUI" type="CanvasLayer" parent="."]
+
+[node name="TopRight" type="VBoxContainer" parent="TopRightUI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 86.0
+grow_horizontal = 0
+
+[node name="ScoreLabel" type="Label" parent="TopRightUI/TopRight"]
+layout_mode = 2
+text = "Score: 0"
+horizontal_alignment = 2
+
+[node name="LevelLabel" type="Label" parent="TopRightUI/TopRight"]
+layout_mode = 2
+text = "Level: 1"
+horizontal_alignment = 2

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/EnemyResource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "basic"
+name = "Forest Imp"
+type = "basic"
+max_health = 50
+damage = 10
+speed = 100.0
+detection_range = 150.0
+attack_range = 30.0
+attack_cooldown = 1.0
+score_value = 10
+texture_path = "res://Assets/icon.svg"

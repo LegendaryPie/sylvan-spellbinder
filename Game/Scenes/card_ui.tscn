@@ -1,0 +1,70 @@
+[gd_scene load_steps=2 format=3 uid="uid://lumi8otsboig"]
+
+[ext_resource type="Script" uid="uid://b7uxv146atiiy" path="res://Game/Scripts/card_ui.gd" id="1_u2k3p"]
+
+[node name="CardUI" type="Control"]
+custom_minimum_size = Vector2(120, 180)
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_u2k3p")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="CardName" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Card Name"
+horizontal_alignment = 1
+
+[node name="CardImage" type="TextureRect" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Type" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Type"
+horizontal_alignment = 1
+
+[node name="Description" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Card description goes here"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="EnergyCost" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -25.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = 25.0
+grow_horizontal = 0
+text = "10"
+horizontal_alignment = 1

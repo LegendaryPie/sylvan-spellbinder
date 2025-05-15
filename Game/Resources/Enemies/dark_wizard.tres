@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/EnemyResource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "elite"
+name = "Dark Wizard"
+type = "elite"
+max_health = 150
+damage = 25
+speed = 80.0
+detection_range = 200.0
+attack_range = 100.0
+attack_cooldown = 2.0
+score_value = 50
+texture_path = "res://Assets/icon.svg"

@@ -1,0 +1,141 @@
+[gd_scene load_steps=6 format=3 uid="uid://b7xnybq1bvr44"]
+
+[ext_resource type="Script" uid="uid://bdrh462bb1f42" path="res://Game/Scripts/game_ui.gd" id="1_v3k4p"]
+[ext_resource type="PackedScene" uid="uid://lumi8otsboig" path="res://Game/Scenes/card_ui.tscn" id="2_w4k5p"]
+[ext_resource type="PackedScene" path="res://Game/Scenes/cards_popup.tscn" id="3_abcd1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.6, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0, 0.6, 1, 1)
+
+[node name="GameUI" type="CanvasLayer"]
+script = ExtResource("1_v3k4p")
+card_scene = ExtResource("2_w4k5p")
+
+[node name="TopBar" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TopBar/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HealthBar" type="ProgressBar" parent="TopBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_1")
+value = 100.0
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/HealthBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "100/100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EnergyBar" type="ProgressBar" parent="TopBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_2")
+value = 100.0
+show_percentage = false
+
+[node name="EnergyLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/EnergyBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "100/100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HandContainer" type="HBoxContainer" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -190.0
+offset_right = 300.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="DeckInfo" type="VBoxContainer" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -90.0
+offset_right = 110.0
+offset_bottom = -10.0
+grow_vertical = 0
+
+[node name="DeckLabel" type="Label" parent="DeckInfo"]
+layout_mode = 2
+text = "Deck:"
+horizontal_alignment = 1
+
+[node name="DeckCount" type="Label" parent="DeckInfo"]
+layout_mode = 2
+text = "0"
+horizontal_alignment = 1
+
+[node name="DiscardInfo" type="VBoxContainer" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -110.0
+offset_top = -90.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="DiscardLabel" type="Label" parent="DiscardInfo"]
+layout_mode = 2
+text = "Discard:"
+horizontal_alignment = 1
+
+[node name="DiscardCount" type="Label" parent="DiscardInfo"]
+layout_mode = 2
+text = "0"
+horizontal_alignment = 1
+
+[node name="CardsPopup" parent="." instance=ExtResource("3_abcd1")]
+visible = false
+
+[node name="TargetingHint" type="Label" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardResource.gd" id="1_script"]
+[ext_resource type="Resource" path="res://Game/Resources/cards/effects/heal_effect.tres" id="2_effect"]
+
+[resource]
+script = ExtResource("1_script")
+id = "healing_light"
+name = "Healing Light"
+type = "utility"
+energy_cost = 2
+description = "Restore 20 health points."
+texture_path = "res://Assets/icon.svg"
+rarity = "uncommon"
+effects = [ExtResource("2_effect")]
+cooldown = 2.0
+cast_sound_path = "res://Assets/sounds/cards/heal.wav"
+cast_particles_path = "res://Assets/particles/heal.tscn"
