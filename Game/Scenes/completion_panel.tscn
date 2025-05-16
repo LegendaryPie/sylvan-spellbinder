@@ -62,6 +62,22 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_2")
 
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/RewardsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="RewardsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/RewardsPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/RewardsPanel/MarginContainer/RewardsList"]
+layout_mode = 2
+text = "Rewards:"
+horizontal_alignment = 1
+
 [node name="CardRewardsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_2")
@@ -86,22 +102,6 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
-
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/RewardsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
-
-[node name="RewardsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/RewardsPanel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/RewardsPanel/MarginContainer/RewardsList"]
-layout_mode = 2
-text = "Rewards:"
-horizontal_alignment = 1
 
 [node name="ArtifactsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
 visible = false

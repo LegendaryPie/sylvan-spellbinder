@@ -45,6 +45,4 @@ signal show_targeting_hint(spell_name: String)
 signal targeting_cancelled
 
 # Game flow signals
-signal room_completed
-signal player_died
 signal deck_changed(deck_size: int)

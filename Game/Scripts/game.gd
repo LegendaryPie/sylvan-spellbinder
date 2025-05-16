@@ -464,6 +464,8 @@ func _show_completion_panel(room: RoomResource):
 		panel.continue_pressed.connect(_on_completion_panel_continue, CONNECT_ONE_SHOT)
 	if not panel.is_connected("artifact_selected", _on_artifact_selected):
 		panel.artifact_selected.connect(_on_artifact_selected)
+	if not panel.is_connected("card_selected", _on_card_reward_selected):
+		panel.card_selected.connect(_on_card_reward_selected)
 	
 	var rewards = []
 	if room.gold_reward > 0:
@@ -473,7 +475,7 @@ func _show_completion_panel(room: RoomResource):
 		
 	# Add card reward to rewards list if applicable
 	if room.card_reward:
-		rewards.append("New Card")
+		rewards.append("+ New Card")
 		
 	# Get artifact rewards if applicable
 	var artifacts = []
@@ -487,13 +489,7 @@ func _show_completion_panel(room: RoomResource):
 				artifacts.append(artifact)
 	
 	# Set up the panel based on room type
-	match room.type:
-		RoomResource.RoomType.BATTLE, RoomResource.RoomType.ELITE:
-			panel.setup_room_completion(room.type_name, rewards, artifacts)
-		RoomResource.RoomType.BOSS:
-			panel.setup_floor_completion(current_floor)
-		_:
-			panel.setup_room_completion(room.type_name, rewards, artifacts)
+	panel.setup_room_completion(room.type_name, rewards, artifacts)
 
 func _on_artifact_selected(artifact):
 	var artifact_manager = player.find_child("ArtifactManager")

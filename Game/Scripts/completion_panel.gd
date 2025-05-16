@@ -12,6 +12,7 @@ signal card_selected(card)
 @onready var card_rewards_panel = $MarginContainer/VBoxContainer/CardRewardsPanel
 
 var card_database: CardDatabase
+var card_ui_scene = preload("res://Game/Scenes/card_ui.tscn")
 
 func _ready():
 	# Enable the button initially
@@ -35,125 +36,111 @@ func _ready():
 	create_tween().tween_property(self, "scale", Vector2.ONE, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	
 	# Get reference to card database
-	card_database = get_node("/root/CardDatabase")
+	card_database = get_node_or_null("/root/Game/Player/CardDatabase")
+	if not card_database:
+		push_error("Failed to find CardDatabase node")
 
 func setup_room_completion(room_type: String, rewards: Array, artifacts: Array = []):
 	title_label.text = "%s Room Complete!" % room_type
 	
+	# Add basic rewards
 	for reward in rewards:
 		var reward_label = Label.new()
 		reward_label.text = reward
 		reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		rewards_list.add_child(reward_label)
 	
-	# Set up card rewards based on room type
-	var card_choices = _get_card_choices(room_type)
-	if card_choices.size() > 0:
-		card_rewards_panel.show()
-		for card in card_choices:
-			var card_button = _create_card_button(card)
-			cards_grid.add_child(card_button)
+	# Set up card rewards based on room type if database is available
+	if card_database:
+		var possible_cards = []
+		# Different room types offer different rarity probabilities
+		match room_type:
+			"Battle":
+				# 70% Common, 25% Uncommon, 5% Rare
+				for i in range(3):
+					var roll = randf()
+					if roll < 0.7:
+						possible_cards.append(card_database.get_random_card_by_rarity(CardResource.Rarity.COMMON))
+					elif roll < 0.95:
+						possible_cards.append(card_database.get_random_card_by_rarity(CardResource.Rarity.UNCOMMON))
+					else:
+						possible_cards.append(card_database.get_random_card_by_rarity(CardResource.Rarity.RARE))
+			"Elite":
+				# 40% Uncommon, 50% Rare, 10% Legendary
+				for i in range(3):
+					var roll = randf()
+					if roll < 0.4:
+						possible_cards.append(card_database.get_random_card_by_rarity(CardResource.Rarity.UNCOMMON))
+					elif roll < 0.9:
+						possible_cards.append(card_database.get_random_card_by_rarity(CardResource.Rarity.RARE))
+					else:
+						possible_cards.append(card_database.get_random_card_by_rarity(CardResource.Rarity.LEGENDARY))
+			"Boss":
+				# 60% Rare, 40% Legendary
+				for i in range(3):
+					var roll = randf()
+					if roll < 0.6:
+						possible_cards.append(card_database.get_random_card_by_rarity(CardResource.Rarity.RARE))
+					else:
+						possible_cards.append(card_database.get_random_card_by_rarity(CardResource.Rarity.LEGENDARY))
+		
+		if possible_cards.size() > 0:
+			card_rewards_panel.show()
+			for card in possible_cards:
+				if card:  # Make sure we got a valid card
+					var card_ui = card_ui_scene.instantiate()
+					cards_grid.add_child(card_ui)
+					card_ui.set_card(card, -1)  # -1 for hand index since this isn't in hand
+					card_ui.gui_input.connect(func(event): _on_card_ui_input(event, card))
+		else:
+			card_rewards_panel.hide()
 	else:
 		card_rewards_panel.hide()
+		push_error("No card database available for rewards")
 	
 	if artifacts.size() > 0:
 		$MarginContainer/VBoxContainer/ArtifactsPanel.show()
 		for artifact in artifacts:
-			var artifact_button = _create_artifact_button(artifact)
-			artifacts_grid.add_child(artifact_button)
+			var artifact_display = _create_artifact_display(artifact)
+			artifacts_grid.add_child(artifact_display)
+	else:
+		$MarginContainer/VBoxContainer/ArtifactsPanel.hide()
 
-func setup_floor_completion(floor_num: int):
-	title_label.text = "Floor %d Complete!" % floor_num
-	continue_button.text = "Enter Next Floor"
+func _create_artifact_display(artifact: ArtifactResource) -> Control:
+	var container = Control.new()
+	container.custom_minimum_size = Vector2(64, 80)
 	
-	# Add some celebratory text
-	var congrats_label = Label.new()
-	congrats_label.text = "Congratulations!\nYou've conquered this floor!"
-	congrats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	rewards_list.add_child(congrats_label)
-
-func _get_card_choices(room_type: String) -> Array:
-	# Different room types offer different rarity probabilities
-	var possible_cards = []
-	match room_type:
-		"Normal":
-			# 70% Common, 25% Uncommon, 5% Rare
-			for i in range(3):  # Show 3 card choices
-				var roll = randf()
-				if roll < 0.7:
-					possible_cards.append(_get_random_card_of_rarity(CardResource.Rarity.COMMON))
-				elif roll < 0.95:
-					possible_cards.append(_get_random_card_of_rarity(CardResource.Rarity.UNCOMMON))
-				else:
-					possible_cards.append(_get_random_card_of_rarity(CardResource.Rarity.RARE))
-		"Elite":
-			# 40% Uncommon, 50% Rare, 10% Legendary
-			for i in range(3):
-				var roll = randf()
-				if roll < 0.4:
-					possible_cards.append(_get_random_card_of_rarity(CardResource.Rarity.UNCOMMON))
-				elif roll < 0.9:
-					possible_cards.append(_get_random_card_of_rarity(CardResource.Rarity.RARE))
-				else:
-					possible_cards.append(_get_random_card_of_rarity(CardResource.Rarity.LEGENDARY))
-		"Boss":
-			# 60% Rare, 40% Legendary
-			for i in range(3):
-				var roll = randf()
-				if roll < 0.6:
-					possible_cards.append(_get_random_card_of_rarity(CardResource.Rarity.RARE))
-				else:
-					possible_cards.append(_get_random_card_of_rarity(CardResource.Rarity.LEGENDARY))
+	var icon = TextureRect.new()
+	icon.texture = load(artifact.texture_path) if artifact.texture_path else load("res://Assets/icon.svg")
+	icon.custom_minimum_size = Vector2(64, 64)
+	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH
+	icon.tooltip_text = "%s\n%s" % [artifact.name, artifact.description]
+	icon.gui_input.connect(func(event): _on_artifact_input(event, artifact))
+	container.add_child(icon)
+	icon.position = Vector2(0, 0)
 	
-	return possible_cards
+	return container
 
-func _get_random_card_of_rarity(rarity: CardResource.Rarity) -> CardResource:
-	return card_database.get_random_card_by_rarity(rarity)
+func _on_card_ui_input(event: InputEvent, card: CardResource):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		emit_signal("card_selected", card)
+		# Disable all card UIs after selection
+		for child in cards_grid.get_children():
+			child.modulate = Color(0.5, 0.5, 0.5, 0.5)
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		
+		# If no artifacts to choose, enable continue button
+		if not $MarginContainer/VBoxContainer/ArtifactsPanel.visible:
+			continue_button.disabled = false
 
-func _create_card_button(card: CardResource) -> Button:
-	var button = Button.new()
-	button.custom_minimum_size = Vector2(120, 180)
-	button.text = "[center]%s\n\n%s\n\nEnergy: %d[/center]" % [card.name, card.description, card.energy_cost]
-	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	button.pressed.connect(func(): _on_card_button_pressed(card))
-	
-	# Set color based on rarity
-	match card.rarity:
-		CardResource.Rarity.COMMON:
-			button.modulate = Color.WHITE
-		CardResource.Rarity.UNCOMMON:
-			button.modulate = Color(0.3, 1, 1) # Cyan
-		CardResource.Rarity.RARE:
-			button.modulate = Color(1, 0.6, 0.1) # Orange
-		CardResource.Rarity.LEGENDARY:
-			button.modulate = Color(1, 0.4, 1) # Purple
-	
-	return button
-
-func _create_artifact_button(artifact):
-	var button = Button.new()
-	button.custom_minimum_size = Vector2(120, 180)
-	button.text = "%s\n\n%s" % [artifact.name, artifact.description]
-	button.pressed.connect(func(): _on_artifact_button_pressed(artifact))
-	return button
-
-func _on_card_button_pressed(card: CardResource):
-	emit_signal("card_selected", card)
-	# Disable all card buttons after selection
-	for child in cards_grid.get_children():
-		child.disabled = true
-	
-	# If no artifacts to choose, enable continue
-	if not $MarginContainer/VBoxContainer/ArtifactsPanel.visible:
+func _on_artifact_input(event: InputEvent, artifact):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		emit_signal("artifact_selected", artifact)
+		# Disable all artifact icons after selection
+		for child in artifacts_grid.get_children():
+			child.modulate = Color(0.5, 0.5, 0.5, 0.5)
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		continue_button.disabled = false
-
-func _on_artifact_button_pressed(artifact):
-	emit_signal("artifact_selected", artifact)
-	# Disable all artifact buttons after selection
-	for child in artifacts_grid.get_children():
-		child.disabled = true
-	continue_button.disabled = false
 
 func _on_continue_button_pressed():
 	emit_signal("continue_pressed")
