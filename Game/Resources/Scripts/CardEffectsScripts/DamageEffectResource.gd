@@ -58,6 +58,7 @@ func execute(caster, target_position: Vector2, direction: Vector2):
 		effect_instance.global_position = caster.global_position + direction * 30
 	elif is_area_effect:
 		effect_instance.global_position = target_position
+		effect_instance._apply_damage()
 		# Show area of effect briefly before cleanup
 		var tween = effect_instance.create_tween()
 		tween.tween_property(effect_instance, "modulate:a", 0.0, 0.3)

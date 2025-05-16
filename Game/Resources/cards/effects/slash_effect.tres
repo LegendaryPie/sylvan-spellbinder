@@ -1,13 +1,13 @@
-[gd_resource type="Resource" script_class="DamageEffectResource" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="DamageEffectResource" load_steps=2 format=3 uid="uid://d835k4v3nhk2"]
 
-[ext_resource type="Script" path="res://Game/Resources/Scripts/CardEffectsScripts/DamageEffectResource.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cj8lvo4kaq356" path="res://Game/Resources/Scripts/CardEffectsScripts/DamageEffectResource.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")
 damage = 15
 damage_type = "physical"
 is_area_effect = true
-radius = 50.0
+radius = 10.0
 is_dot = false
 tick_interval = 1.0
 is_projectile = false
@@ -15,3 +15,6 @@ projectile_speed = 300.0
 projectile_range = 500.0
 chain_targets = 0
 chain_range = 0.0
+effect_type = "damage"
+duration = 0.0
+effect_scene_path = "res://Game/Scenes/spell_effects/slash_effect.tscn"

@@ -189,13 +189,9 @@ func _on_hit_box_area_entered(area: Area2D):
 		take_damage(area.get_damage())
 
 func _on_mouse_entered():
-	print("Mouse entered enemy: ", resource.name if resource else "Unknown")
 	if name_label and resource and resource.type != "boss":
 		name_label.visible = true
-		print("Showing name label for: ", resource.name)
 
 func _on_mouse_exited():
-	print("Mouse exited enemy: ", resource.name if resource else "Unknown")
 	if name_label and resource and resource.type != "boss":
 		name_label.visible = false
-		print("Hiding name label for: ", resource.name)

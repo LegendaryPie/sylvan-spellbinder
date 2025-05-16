@@ -16,6 +16,9 @@ var projectile_speed: float = 0.0
 var projectile_range: float = 0.0
 var distance_traveled: float = 0.0
 
+#area effect
+var is_area_effect: bool = false
+
 func _ready():
 	# Set up collision detection
 	collision_layer = 4  # Spell effects layer
@@ -37,6 +40,7 @@ func set_dot_properties(time: float, interval: float):
 
 func set_area_properties(radius: float):
 	# Update collision shape
+	is_area_effect = true
 	var collision_shape = get_node_or_null("CollisionShape2D")
 	if collision_shape:
 		var circle = collision_shape.shape as CircleShape2D
@@ -71,7 +75,7 @@ func _physics_process(delta):
 		
 		if total_time >= duration:
 			queue_free()
-	elif !has_hit and !is_projectile:
+	elif !has_hit and !is_projectile and !is_area_effect:
 		# For instant effects (non-projectile, non-DoT), apply damage once and cleanup
 		_apply_damage()
 		has_hit = true
@@ -81,13 +85,11 @@ func _apply_damage():
 	print("Applying damage: ", damage)  # Debug print
 	# Check for overlapping areas
 	var overlapping_areas = get_overlapping_areas()
+	print(overlapping_areas)
 	for area in overlapping_areas:
 		print("Found overlapping area: ", area.name)  # Debug print
-		if area.is_in_group("enemy_hurtbox"):
-			var enemy = area.get_parent()
-			if enemy and enemy.has_method("take_damage"):
-				print("Dealing damage to enemy: ", enemy.name)  # Debug print
-				enemy.take_damage(damage)
+		if area.get_parent() and area.get_parent().has_method("take_damage") and !area.get_parent().is_class("Player"):
+			area.get_parent().take_damage(damage)
 
 func get_damage() -> int:
 	return damage
