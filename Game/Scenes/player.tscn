@@ -1,9 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://b4777o2q4q6t"]
+[gd_scene load_steps=9 format=3 uid="uid://b4777o2q4q6t"]
 
 [ext_resource type="Script" uid="uid://dvwrq552dr3h7" path="res://Game/Scripts/player.gd" id="1_v0iea"]
 [ext_resource type="Texture2D" uid="uid://cmntacjybukvt" path="res://Assets/icon.svg" id="2_6t5aa"]
 [ext_resource type="Script" uid="uid://qw7cnriahnnt" path="res://Game/Scripts/CardDatabase.gd" id="3_vgqql"]
 [ext_resource type="Script" uid="uid://dlfjy4qymp7wn" path="res://Game/Scripts/card_deck_manager.gd" id="4_fkybt"]
+[ext_resource type="Script" path="res://Game/Scripts/ArtifactDatabase.gd" id="5_wxkal"]
+[ext_resource type="Script" path="res://Game/Scripts/artifact_manager.gd" id="6_bmnop"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_cvnsp"]
 
@@ -32,3 +34,9 @@ script = ExtResource("3_vgqql")
 
 [node name="CardDeckManager" type="Node" parent="."]
 script = ExtResource("4_fkybt")
+
+[node name="ArtifactDatabase" type="Node" parent="."]
+script = ExtResource("5_wxkal")
+
+[node name="ArtifactManager" type="Node" parent="."]
+script = ExtResource("6_bmnop")

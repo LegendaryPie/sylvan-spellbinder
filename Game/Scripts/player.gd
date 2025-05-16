@@ -41,13 +41,13 @@ var targeting_max_range: float = 500.0
 @onready var animation_player = $AnimationPlayer
 @onready var sprite = $Sprite2D
 @onready var card_manager = $CardDeckManager
+@onready var artifact_manager = $ArtifactManager
 @onready var hurt_box = $HurtBox
 @onready var targeting_area = $TargetingArea
 
 func _ready():
 	# Initialize character
-	health = max_health
-	energy = max_energy
+	_initialize_stats()
 	
 	# Connect signals
 	hurt_box.connect("area_entered", Callable(self, "_on_hurt_box_area_entered"))
@@ -139,13 +139,18 @@ func play_card(card_index: int) -> bool:
 	if not card:
 		return false
 	
+	# Get modified energy cost from artifacts
+	var modified_cost = card.energy_cost
+	if artifact_manager:
+		modified_cost = artifact_manager.modify_card_cost(modified_cost)
+	
 	# Check if we have enough energy
-	if energy < card.energy_cost:
+	if energy < modified_cost:
 		return false
 	
 	# Check if card needs targeting
 	# Cards need targeting if they're attack type or have effects with targeting
-	var needs_targeting = card.type == "attack"
+	var needs_targeting = card.type == CardResource.CardType.ATTACK
 	var max_range = 500.0  # Default max range
 	targeting_radius = 30.0  # Default radius
 	
@@ -178,10 +183,10 @@ func play_card(card_index: int) -> bool:
 	
 	# For non-targeting cards, execute immediately
 	# Pay the energy cost
-	energy -= card.energy_cost
+	energy -= modified_cost
 	_emit_energy_changed()
 	
-	# Get target position and direction
+	# Get target position and direction for non-targeted cards
 	var mouse_pos = get_global_mouse_position()
 	var direction = (mouse_pos - global_position).normalized()
 	
@@ -192,13 +197,22 @@ func play_card(card_index: int) -> bool:
 	card_manager.discard_card(card_index)
 	Events.card_played.emit(card.name, card_index)
 	
+	# Trigger artifact effects
+	if artifact_manager:
+		artifact_manager._on_card_played(card)
 	
 	return true
 
 func take_damage(amount):
 	if is_dead or is_invulnerable:
 		return
-		
+	
+	var damage_info = {
+		"original_amount": amount,
+		"final_amount": amount,
+		"source": null  # Could be expanded to include damage source
+	}
+	
 	# Apply shield if available
 	var remaining_damage = amount
 	if shield_amount > 0:
@@ -210,8 +224,12 @@ func take_damage(amount):
 			shield_amount = 0
 		_emit_shield_changed()
 	
-	# Apply remaining damage to health
+	# Apply remaining damage to health and trigger artifact effects
 	if remaining_damage > 0:
+		damage_info.final_amount = remaining_damage
+		if artifact_manager:
+			artifact_manager._on_player_hit(damage_info)
+		
 		health -= remaining_damage
 		_emit_health_changed()
 		
@@ -228,8 +246,15 @@ func take_damage(amount):
 		# Visual feedback for blocked damage
 		_play_animation("block")
 
+func on_enemy_killed(enemy):
+	if artifact_manager:
+		artifact_manager._on_enemy_killed(enemy)
+
 func heal(amount):
-	health = min(health + amount, max_health)
+	var modified_healing = amount
+	if artifact_manager:
+		modified_healing = artifact_manager.modify_healing(amount)
+	health = min(health + modified_healing, max_health)
 	_emit_health_changed()
 
 func _die():
@@ -246,13 +271,16 @@ func _on_hurt_box_area_entered(area):
 
 # Add shield to the player
 func add_shield(amount: int, duration: float = 0.0):
-	shield_amount += amount
+	var modified_shield = amount
+	if artifact_manager:
+		modified_shield = int(artifact_manager.modify_shield(amount))
+	shield_amount += modified_shield
 	_emit_shield_changed()
 	
 	# If duration is specified, create a timer to remove the shield
 	if duration > 0:
 		var timer = get_tree().create_timer(duration)
-		timer.connect("timeout", Callable(self, "_on_shield_expired").bind(amount))
+		timer.connect("timeout", Callable(self, "_on_shield_expired").bind(modified_shield))
 
 func _on_shield_expired(amount: int):
 	shield_amount = max(0, shield_amount - amount)
@@ -389,8 +417,22 @@ func reset_for_room():
 	Events.emit_signal("player_energy_changed", energy, max_energy)
 	
 	# Clear any temporary buffs or status effects
-	shield = 0
-	Events.emit_signal("player_shield_changed", shield)
+	shield_amount = 0
+	Events.emit_signal("player_shield_changed", shield_amount)
 	
 	# Reset position to starting point
 	position = Vector2(get_viewport_rect().size.x / 2, get_viewport_rect().size.y * 0.75)
+
+func _initialize_stats():
+	health = max_health
+	energy = max_energy
+	
+	# Apply artifact bonuses to base stats
+	if artifact_manager:
+		max_health += artifact_manager.get_health_bonus()
+		health += artifact_manager.get_health_bonus()
+		max_energy += artifact_manager.get_energy_bonus()
+		energy += artifact_manager.get_energy_bonus()
+		
+		# Update card draw stats
+		cards_per_draw += artifact_manager.get_card_draw_bonus()

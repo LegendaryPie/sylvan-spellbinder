@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="UtilityEffectResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardEffectResource.gd" id="1_effect"]
+
+[resource]
+script = ExtResource("1_effect")
+utility_type = 5  # DRAW_CARDS
+value = 3.0  # Draw 3 cards
+effect_scene_path = "res://scenes/card_effects/DrawCardsEffect.tscn"

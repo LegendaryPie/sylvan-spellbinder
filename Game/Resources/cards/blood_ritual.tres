@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardResource.gd" id="1_script"]
+[ext_resource type="Resource" path="res://Game/Resources/cards/effects/energy_restore_effect.tres" id="2_effect"]
+
+[resource]
+script = ExtResource("1_script")
+id = "blood_ritual"
+name = "Blood Ritual"
+type = 2  # CardType.UTILITY
+energy_cost = 0
+description = "Sacrifice 15 health to restore {value} energy."
+texture_path = "res://assets/cards/blood_ritual.png"
+rarity = 2  # Rarity.RARE
+effects = [ExtResource("2_effect")]
+cooldown = 0.0
+cast_sound_path = "res://assets/sounds/cards/blood_ritual.wav"
+cast_particles_path = "res://assets/particles/blood.tscn"

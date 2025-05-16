@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://b5jyo8ipsljar"]
 
-[ext_resource type="Script" path="res://Game/Scripts/settings_menu.gd" id="1_s2k3p"]
+[ext_resource type="Script" uid="uid://daxpbib3ki4fy" path="res://Game/Scripts/settings_menu.gd" id="1_s2k3p"]
 
 [node name="SettingsMenu" type="Window"]
 title = "Settings"

@@ -11,13 +11,23 @@ signal health_changed(current, maximum)
 var health: int = 100
 var is_dead: bool = false
 var target: Node2D = null
-var current_state: int = State.IDLE
+var current_state: int = State.SPAWNING
 var attack_timer: float = 0.0
+var spawn_timer: float = 0.5  # Time before enemy becomes active
+
+# Idle movement variables
+var idle_direction: Vector2 = Vector2.ZERO
+var idle_timer: float = 0.0
+var idle_wait_time: float = 2.0  # Time to wait between movements
+var idle_move_time: float = 1.5  # Time to move in a direction
+var is_idle_moving: bool = false
+var spawn_position: Vector2  # Store initial position for wandering radius
 
 # Projectile variables
 var projectile_scene: PackedScene = null
 
 enum State {
+	SPAWNING,
 	IDLE,
 	CHASE,
 	ATTACK,
@@ -36,6 +46,15 @@ func _ready():
 	if resource:
 		_initialize_from_resource()
 	
+	# Store initial spawn position for wandering radius
+	spawn_position = global_position
+	
+	# Start in spawning state with detection disabled
+	current_state = State.SPAWNING
+	if detection_area:
+		detection_area.monitoring = false
+		detection_area.monitorable = false
+	
 	# Connect areas
 	detection_area.body_entered.connect(_on_detection_area_body_entered)
 	detection_area.body_exited.connect(_on_detection_area_body_exited)
@@ -49,7 +68,7 @@ func _ready():
 	if name_label:
 		name_label.text = resource.name if resource else "Enemy"
 		name_label.visible = resource and resource.type == "boss"
-	
+		
 	if health_bar:
 		health_bar.max_value = health
 		health_bar.value = health
@@ -84,6 +103,15 @@ func _physics_process(delta):
 	if is_dead:
 		return
 	
+	if current_state == State.SPAWNING:
+		spawn_timer -= delta
+		if spawn_timer <= 0:
+			current_state = State.IDLE
+			if detection_area:
+				detection_area.monitoring = true
+				detection_area.monitorable = true
+		return
+	
 	match current_state:
 		State.IDLE:
 			_handle_idle_state(delta)
@@ -105,10 +133,35 @@ func _physics_process(delta):
 				# Add a small pushback when colliding with player
 				global_position += collision_obj.get_normal() * 5.0
 
-func _handle_idle_state(_delta):
-	velocity = Vector2.ZERO
+func _handle_idle_state(delta):
 	if target:
 		current_state = State.CHASE
+		return
+		
+	if is_idle_moving:
+		# Continue moving in the current direction
+		velocity = idle_direction * (resource.speed * 0.5)  # Move at half speed while idle
+		
+		# Check if we've wandered too far from spawn point
+		var distance_from_spawn = global_position.distance_to(spawn_position)
+		if distance_from_spawn > resource.detection_range * 0.5:
+			# Turn around and head back to spawn
+			idle_direction = (spawn_position - global_position).normalized()
+		
+		idle_timer -= delta
+		if idle_timer <= 0:
+			# Stop moving and wait
+			is_idle_moving = false
+			idle_timer = idle_wait_time
+			velocity = Vector2.ZERO
+	else:
+		# Waiting phase, decrease timer
+		idle_timer -= delta
+		if idle_timer <= 0:
+			# Change direction and start moving
+			idle_direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
+			is_idle_moving = true
+			idle_timer = idle_move_time
 
 func _handle_chase_state(_delta):
 	if not target:
@@ -116,28 +169,52 @@ func _handle_chase_state(_delta):
 		return
 	
 	var distance_to_target = global_position.distance_to(target.global_position)
+	var direction = (target.global_position - global_position).normalized()
+	
+	# Get overlapping enemies for collision avoidance
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsShapeQueryParameters2D.new()
+	query.collision_mask = 2  # Enemy layer
+	query.transform = Transform2D(0, global_position)
+	query.shape = CircleShape2D.new()
+	query.shape.radius = 30.0  # Collision avoidance radius
+	
+	var nearby = space_state.intersect_shape(query)
+	var avoid_vector = Vector2.ZERO
+	
+	# Calculate avoidance vector based on nearby enemies
+	for result in nearby:
+		var other = result["collider"]
+		if other != self and other is CharacterBody2D:
+			var to_other = global_position - other.global_position
+			if to_other.length() > 0:
+				avoid_vector += to_other.normalized() / to_other.length()
 	
 	# For ranged enemies, maintain distance
 	if resource and "is_ranged" in resource and resource.is_ranged:
 		var ideal_range = resource.attack_range * 0.8
 		if distance_to_target < ideal_range:
 			# Back away from target
-			velocity = (global_position - target.global_position).normalized() * resource.speed
+			direction = (global_position - target.global_position).normalized()
+			velocity = (direction + avoid_vector).normalized() * resource.speed
 		elif distance_to_target > resource.attack_range:
 			# Move closer to target
-			velocity = (target.global_position - global_position).normalized() * resource.speed
+			velocity = (direction + avoid_vector).normalized() * resource.speed
 		else:
-			velocity = Vector2.ZERO
-			current_state = State.ATTACK
+			velocity = avoid_vector.normalized() * resource.speed * 0.5
+			if avoid_vector.length_squared() < 0.1:
+				velocity = Vector2.ZERO
+				current_state = State.ATTACK
 	else:
 		# Melee enemy behavior
-		if distance_to_target > resource.attack_range - 5.0:
+		if distance_to_target > resource.attack_range:
 			# Move towards target
-			var direction = (target.global_position - global_position).normalized()
-			velocity = direction * resource.speed
+			velocity = (direction + avoid_vector).normalized() * resource.speed
 		else:
-			current_state = State.ATTACK
-			velocity = Vector2.ZERO
+			velocity = avoid_vector.normalized() * resource.speed * 0.5
+			if avoid_vector.length_squared() < 0.1:
+				velocity = Vector2.ZERO
+				current_state = State.ATTACK
 
 func _handle_attack_state(delta):
 	velocity = Vector2.ZERO
@@ -153,6 +230,25 @@ func _handle_attack_state(delta):
 
 func _handle_stunned_state(_delta):
 	velocity = Vector2.ZERO
+
+func _handle_idle_movement(delta):
+	if is_idle_moving:
+		# Continue moving in the current direction
+		velocity = idle_direction * resource.speed
+		
+		idle_timer -= delta
+		if idle_timer <= 0:
+			# Stop moving and wait
+			is_idle_moving = false
+			idle_timer = idle_wait_time
+	else:
+		# Waiting phase, decrease timer
+		idle_timer -= delta
+		if idle_timer <= 0:
+			# Change direction and start moving
+			idle_direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
+			is_idle_moving = true
+			idle_timer = idle_move_time
 
 func _perform_attack():
 	if not target:

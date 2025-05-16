@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://d3o27k776rijy"]
 
-[ext_resource type="Script" path="res://Game/Scripts/completion_panel.gd" id="1_cp4ns"]
+[ext_resource type="Script" uid="uid://drlxwblc7mdsx" path="res://Game/Scripts/completion_panel.gd" id="1_cp4ns"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.133333, 0.133333, 0.133333, 0.901961)
@@ -8,7 +8,6 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.8, 0.8, 0.8, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -27,10 +26,9 @@ corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
 [node name="CompletionPanel" type="PanelContainer"]
-process_mode = 3  # Make sure it works while game is paused
+process_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
-script = ExtResource("1_cp4ns")
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
@@ -41,6 +39,7 @@ offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+script = ExtResource("1_cp4ns")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
@@ -63,6 +62,31 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_2")
 
+[node name="CardRewardsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_2")
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/CardRewardsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/CardRewardsPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CardRewardsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Choose a Card:"
+horizontal_alignment = 1
+
+[node name="CardsGrid" type="HBoxContainer" parent="MarginContainer/VBoxContainer/CardRewardsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/RewardsPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
@@ -79,8 +103,34 @@ layout_mode = 2
 text = "Rewards:"
 horizontal_alignment = 1
 
+[node name="ArtifactsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_2")
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ArtifactsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ArtifactsPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ArtifactsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Choose an Artifact:"
+horizontal_alignment = 1
+
+[node name="ArtifactsGrid" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ArtifactsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
 [node name="ContinueButton" type="Button" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-size_flags_vertical = 10
-theme_override_font_sizes/font_size = 20
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
 text = "Continue"

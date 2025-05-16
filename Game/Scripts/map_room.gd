@@ -72,7 +72,29 @@ func update_state():
 	if room_resource.completed:
 		button.modulate = Color(0.5, 0.5, 0.5)
 	elif not room_resource.available:
-		button.modulate = button.modulate.darkened(0.5)
+		match room_resource.type:
+			RoomResource.RoomType.BATTLE:
+				button.modulate = Color(0.8, 0.2, 0.2).darkened(.7)
+			RoomResource.RoomType.ELITE:
+				button.modulate = Color(0.8, 0.4, 0.0).darkened(.7)
+			RoomResource.RoomType.TREASURE:
+				button.modulate = Color(0.9, 0.8, 0.0).darkened(.7)
+			RoomResource.RoomType.REST:
+				button.modulate = Color(0.2, 0.8, 0.2).darkened(.7)
+			RoomResource.RoomType.BOSS:
+				button.modulate = Color(0.8, 0.0, 0.0).darkened(.7)
+	elif room_resource.available:
+		match room_resource.type:
+			RoomResource.RoomType.BATTLE:
+				button.modulate = Color(0.8, 0.2, 0.2)
+			RoomResource.RoomType.ELITE:
+				button.modulate = Color(0.8, 0.4, 0.0)
+			RoomResource.RoomType.TREASURE:
+				button.modulate = Color(0.9, 0.8, 0.0)
+			RoomResource.RoomType.REST:
+				button.modulate = Color(0.2, 0.8, 0.2)
+			RoomResource.RoomType.BOSS:
+				button.modulate = Color(0.8, 0.0, 0.0)
 
 func _on_button_pressed():
 	room_clicked.emit(room_resource)

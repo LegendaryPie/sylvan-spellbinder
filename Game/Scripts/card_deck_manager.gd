@@ -102,3 +102,9 @@ func get_discard_contents() -> Array[CardResource]:
 		if card is CardResource:
 			cards.append(card)
 	return cards
+
+# Add a new card to the deck (for rewards)
+func add_card_to_deck(card: CardResource) -> void:
+	deck.append(card)
+	deck.shuffle()  # Shuffle the deck after adding new card
+	Events.deck_changed.emit(deck.size())

@@ -17,23 +17,28 @@ class_name BattleRoomResource
 
 func _init():
 	type = RoomType.BATTLE
+	
+func setup_random():
+	generate_enemy_types()
 
-func generate_enemies():
+func generate_enemy_types():
 	enemy_count = 1 if type == RoomType.BOSS else randi_range(1, 3)
 	
 	match type:
 		RoomType.BATTLE:
 			enemy_level = 1
+			enemy_count = ceil(randf() * 4)
+			enemy_types = []
+			for i in range(enemy_count):
+				enemy_types.append('basic')
 		RoomType.ELITE:
 			enemy_level = 2
 			enemy_count = 2
+			enemy_types = []
+			for i in range(enemy_count):
+				enemy_types.append('basic' if randf() < 0.5 else 'elite')
 		RoomType.BOSS:
 			enemy_level = 3
-			enemy_count = 1
+			enemy_count = 3
+			enemy_types = ['elite', 'elite', 'boss']
 	
-	# TODO: Replace with actual enemy types from the game
-	var possible_enemies = ["Goblin", "Skeleton", "Slime", "Bat", "Spider"]
-	enemy_types.clear()
-	
-	for i in range(enemy_count):
-		enemy_types.append(possible_enemies[randi() % possible_enemies.size()])

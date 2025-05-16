@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardResource.gd" id="1_script"]
+[ext_resource type="Resource" path="res://Game/Resources/cards/effects/lightning_bolt_effect.tres" id="2_effect"]
+
+[resource]
+script = ExtResource("1_script")
+id = "lightning_bolt"
+name = "Lightning Bolt"
+type = 0  # CardType.ATTACK
+energy_cost = 30
+description = "Call down a bolt of lightning dealing {damage} damage with high velocity."
+texture_path = "res://assets/cards/lightning_bolt.png"
+rarity = 2  # Rarity.RARE
+effects = [ExtResource("2_effect")]
+cooldown = 0.0
+cast_sound_path = "res://assets/sounds/cards/lightning.wav"
+cast_particles_path = "res://assets/particles/lightning.tscn"

@@ -8,11 +8,11 @@
 script = ExtResource("1_script")
 id = "fireball"
 name = "Fireball"
-type = "attack"
+type = 0
 energy_cost = 3
 description = "Launch a ball of fire that explodes on impact, dealing 25 fire damage and burning enemies over time."
 texture_path = "res://Assets/icon.svg"
-rarity = "uncommon"
+rarity = 1
 effects = Array[ExtResource("1_1onef")]([ExtResource("2_effect")])
 cooldown = 1.0
 cast_sound_path = "res://Assets/sounds/cards/fireball.wav"

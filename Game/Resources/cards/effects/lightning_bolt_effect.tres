@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="DamageEffectResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardEffectResource.gd" id="1_effect"]
+
+[resource]
+script = ExtResource("1_effect")
+damage = 40
+damage_type = "lightning"
+is_projectile = true
+projectile_speed = 600
+projectile_range = 400
+effect_scene_path = "res://scenes/card_effects/LightningBoltEffect.tscn"

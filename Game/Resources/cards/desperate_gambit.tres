@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardResource.gd" id="1_script"]
+[ext_resource type="Resource" path="res://Game/Resources/cards/effects/draw_cards_effect.tres" id="2_effect"]
+
+[resource]
+script = ExtResource("1_script")
+id = "desperate_gambit"
+name = "Desperate Gambit"
+type = 2  # CardType.UTILITY
+energy_cost = 15
+description = "Discard your hand, then draw {value} new cards."
+texture_path = "res://assets/cards/desperate_gambit.png"
+rarity = 1  # Rarity.UNCOMMON
+effects = [ExtResource("2_effect")]
+cooldown = 3.0
+cast_sound_path = "res://assets/sounds/cards/gambit.wav"
+cast_particles_path = "res://assets/particles/cards.tscn"

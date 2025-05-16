@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="UtilityEffectResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardEffectResource.gd" id="1_effect"]
+
+[resource]
+script = ExtResource("1_effect")
+utility_type = 2  # UtilityEffectResource.UtilityType.BUFF
+value = 2.0  # Double speed
+duration = 3.0
+effect_scene_path = "res://scenes/card_effects/HasteEffect.tscn"

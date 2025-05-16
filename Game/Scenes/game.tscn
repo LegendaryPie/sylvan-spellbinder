@@ -17,7 +17,7 @@ max_energy = 10.0
 energy_regen_rate = 1.0
 draw_cooldown = 2.0
 
-[node name="EnemyManager" type="Node" parent="."]
+[node name="EnemyManager" type="Node2D" parent="."]
 script = ExtResource("enemy_manager")
 max_enemies = 8
 spawn_interval = 3.0
@@ -49,9 +49,9 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -200.0
-offset_top = 20.0
+offset_top = 40.0
 offset_right = -20.0
-offset_bottom = 86.0
+offset_bottom = 106.0
 grow_horizontal = 0
 
 [node name="ScoreLabel" type="Label" parent="TopRightUI/TopRight"]

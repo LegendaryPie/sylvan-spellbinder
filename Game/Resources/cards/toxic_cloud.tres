@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardResource.gd" id="1_script"]
+[ext_resource type="Resource" path="res://Game/Resources/cards/effects/poison_cloud_effect.tres" id="2_effect"]
+
+[resource]
+script = ExtResource("1_script")
+id = "toxic_cloud"
+name = "Toxic Cloud"
+type = 0  # CardType.ATTACK
+energy_cost = 25
+description = "Release a cloud of poison dealing {damage} damage per second for {duration}s."
+texture_path = "res://assets/cards/toxic_cloud.png"
+rarity = 2  # Rarity.RARE
+effects = [ExtResource("2_effect")]
+cooldown = 2.0
+cast_sound_path = "res://assets/sounds/cards/poison.wav"
+cast_particles_path = "res://assets/particles/poison.tscn"

@@ -2,7 +2,7 @@ extends CanvasLayer
 
 @export var card_scene: PackedScene
 
-signal return_to_map_requested
+
 
 # UI node references
 @onready var health_bar = $TopBar/MarginContainer/HBoxContainer/HealthBar
@@ -28,6 +28,9 @@ var is_targeting: bool = false
 var normal_modulate: Color = Color(1, 1, 1, 1)
 var disabled_modulate: Color = Color(0.7, 0.7, 0.7, 0.5)
 
+# Track artifact display
+var artifact_nodes: Array = []
+
 func _ready():
 	# Connect to Events singleton signals
 	Events.player_health_changed.connect(_on_player_health_changed)
@@ -38,8 +41,6 @@ func _ready():
 	Events.show_targeting_hint.connect(_on_show_targeting_hint)
 	Events.targeting_cancelled.connect(_on_targeting_cancelled)
 	Events.reward_earned.connect(_on_reward_earned)
-	Events.room_completed.connect(_on_room_completed)
-	Events.floor_completed.connect(_on_floor_completed)
 	
 	# Setup shield bar
 	if shield_bar:
@@ -77,8 +78,12 @@ func _ready():
 	if map_button:
 		map_button.pressed.connect(_on_map_button_pressed)
 
+	if get_tree().get_root().has_node("Game/Player/ArtifactManager"):
+		var artifact_manager = get_tree().get_root().get_node("Game/Player/ArtifactManager")
+		artifact_manager.artifact_added.connect(_on_artifact_added)
+		artifact_manager.artifact_removed.connect(_on_artifact_removed)
+
 func _set_ui_interactable(interactable: bool):
-	print("ui interaction",interactable)
 	deck_button.mouse_filter = Control.MOUSE_FILTER_STOP if interactable else Control.MOUSE_FILTER_IGNORE
 	discard_button.mouse_filter = Control.MOUSE_FILTER_STOP if interactable else Control.MOUSE_FILTER_IGNORE
 	
@@ -172,14 +177,31 @@ func _show_cards_list(cards: Array[CardResource]):
 	
 	for card in cards:
 		var display_text = card.name
-		var tooltip = "%s\nType: %s\nEnergy: %d\n%s" % [
+		var type_text = CardResource.CardType.keys()[card.type]
+		var rarity_text = CardResource.Rarity.keys()[card.rarity]
+		
+		var tooltip = "%s\nType: %s\nRarity: %s\nEnergy: %d\n%s" % [
 			card.name,
-			card.type.capitalize(),
+			type_text,
+			rarity_text,
 			card.energy_cost,
 			card.get_formatted_description()
 		]
+		
 		cards_list.add_item(display_text, null, true)  # Make item selectable
 		var idx = cards_list.item_count - 1
+		
+		# Color the item based on rarity
+		match card.rarity:
+			CardResource.Rarity.COMMON:
+				cards_list.set_item_custom_fg_color(idx, Color.WHITE)
+			CardResource.Rarity.UNCOMMON:
+				cards_list.set_item_custom_fg_color(idx, Color(0.3, 1, 1)) # Cyan
+			CardResource.Rarity.RARE:
+				cards_list.set_item_custom_fg_color(idx, Color(1, 0.6, 0.1)) # Orange
+			CardResource.Rarity.LEGENDARY:
+				cards_list.set_item_custom_fg_color(idx, Color(1, 0.4, 1)) # Purple
+				
 		cards_list.set_item_tooltip(idx, tooltip)
 		cards_list.set_item_tooltip_enabled(idx, true)
 	
@@ -207,7 +229,7 @@ func _on_targeting_cancelled():
 		_set_ui_interactable(true)
 
 func _on_map_button_pressed():
-	return_to_map_requested.emit()
+	Events.return_to_map_requested.emit()
 
 # UI scene references
 @onready var floating_text_scene = preload("res://Game/Scenes/floating_text.tscn")
@@ -235,37 +257,6 @@ func _on_reward_earned(reward_type: String, amount: int):
 	
 	spawn_floating_text(reward_text, text_color)
 
-func _on_room_completed(room: RoomResource):
-	var room_type_text = ""
-	var rewards = []
-	
-	match room.type:
-		RoomResource.RoomType.BATTLE:
-			room_type_text = "Battle"
-		RoomResource.RoomType.ELITE:
-			room_type_text = "Elite"
-		RoomResource.RoomType.TREASURE:
-			room_type_text = "Treasure"
-		RoomResource.RoomType.REST:
-			room_type_text = "Rest"
-		RoomResource.RoomType.BOSS:
-			room_type_text = "Boss"
-	
-	# Collect rewards for display
-	if room.gold_reward > 0:
-		rewards.append("%d Gold" % room.gold_reward)
-	if room.health_bonus > 0:
-		rewards.append("%d HP Restored" % room.health_bonus)
-	if room.card_reward:
-		rewards.append("New Card Reward")
-	if room.artifact_reward:
-		rewards.append("Artifact Reward")
-	
-	show_completion_panel(room_type_text, rewards)
-
-func _on_floor_completed(floor_num: int):
-	show_floor_completion(floor_num)
-
 func spawn_floating_text(text: String, color: Color = Color.WHITE):
 	var floating_text = floating_text_scene.instantiate()
 	add_child(floating_text)
@@ -277,26 +268,31 @@ func spawn_floating_text(text: String, color: Color = Color.WHITE):
 	)
 	floating_text.display(text, color)
 
-func show_completion_panel(room_type: String, rewards: Array):
-	if active_completion_panel:
-		active_completion_panel.queue_free()
-	
-	active_completion_panel = completion_panel_scene.instantiate()
-	add_child(active_completion_panel)
-	
-	active_completion_panel.setup_room_completion(room_type, rewards)
-	active_completion_panel.continue_pressed.connect(_on_completion_continue)
-
-func show_floor_completion(floor_num: int):
-	if active_completion_panel:
-		active_completion_panel.queue_free()
-	
-	active_completion_panel = completion_panel_scene.instantiate()
-	add_child(active_completion_panel)
-	
-	active_completion_panel.setup_floor_completion(floor_num)
-	active_completion_panel.continue_pressed.connect(_on_completion_continue)
-
 func _on_completion_continue():
 	active_completion_panel = null
+	Events.return_to_map_requested.emit()
 	# The panel will clean itself up
+
+func _on_artifact_added(artifact: ArtifactResource):
+	_add_artifact_display(artifact)
+	
+func _on_artifact_removed(artifact: ArtifactResource):
+	# Find and remove the artifact's display
+	for node in artifact_nodes:
+		if node.artifact_id == artifact.id:
+			node.queue_free()
+			artifact_nodes.erase(node)
+			break
+
+func _add_artifact_display(artifact: ArtifactResource):
+	var artifact_icon = TextureRect.new()
+	artifact_icon.texture = load(artifact.texture_path) if artifact.texture_path else load("res://Assets/icon.svg")
+	artifact_icon.custom_minimum_size = Vector2(32, 32)
+	artifact_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH
+	artifact_icon.tooltip_text = "%s\n%s" % [artifact.name, artifact.description]
+	artifact_icon.set_meta("artifact_id", artifact.id)
+	
+	# Add to artifacts container
+	if has_node("ArtifactsContainer"):
+		$ArtifactsContainer.add_child(artifact_icon)
+		artifact_nodes.append(artifact_icon)

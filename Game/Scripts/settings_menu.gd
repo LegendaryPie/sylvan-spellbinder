@@ -21,6 +21,9 @@ func _ready():
 	close_button.pressed.connect(_on_close_pressed)
 	close_requested.connect(_on_close_pressed)
 	
+	# Make sure this Control node is set to process even when paused
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	
 	# Load saved settings
 	load_settings()
 

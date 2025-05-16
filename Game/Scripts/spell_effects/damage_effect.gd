@@ -82,12 +82,9 @@ func _physics_process(delta):
 		queue_free()
 
 func _apply_damage():
-	print("Applying damage: ", damage)  # Debug print
 	# Check for overlapping areas
 	var overlapping_areas = get_overlapping_areas()
-	print(overlapping_areas)
 	for area in overlapping_areas:
-		print("Found overlapping area: ", area.name)  # Debug print
 		if area.get_parent() and area.get_parent().has_method("take_damage") and !area.get_parent().is_class("Player"):
 			area.get_parent().take_damage(damage)
 

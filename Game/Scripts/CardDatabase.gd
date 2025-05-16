@@ -33,20 +33,28 @@ func _create_fallback_cards():
 	var fireball = CardResource.new()
 	fireball.id = "fireball"
 	fireball.name = "Fireball"
-	fireball.type = "attack"
+	fireball.type = CardResource.CardType.ATTACK
 	fireball.energy_cost = 15
-	fireball.description = "Launch a fireball that deals {damage} fire damage to enemies hit."
+	fireball.description = "Launch a fireball that deals {damage} fire damage and burns for {dot_damage} damage over {duration}s."
 	fireball.texture_path = "res://assets/cards/fireball.png"
-	fireball.rarity = "common"
+	fireball.rarity = CardResource.Rarity.COMMON
 	
-	var fireball_effect = DamageEffectResource.new()
-	fireball_effect.damage = 25
-	fireball_effect.damage_type = "fire"
-	fireball_effect.is_projectile = true
-	fireball_effect.projectile_speed = 400
-	fireball_effect.projectile_range = 350
-	fireball_effect.effect_scene_path = "res://scenes/card_effects/FireballEffect.tscn"
-	fireball.effects.append(fireball_effect)
+	var damage_effect = DamageEffectResource.new()
+	damage_effect.damage = 25
+	damage_effect.damage_type = "fire"
+	damage_effect.is_projectile = true
+	damage_effect.projectile_speed = 300
+	damage_effect.projectile_range = 250
+	damage_effect.effect_scene_path = "res://scenes/card_effects/FireballEffect.tscn"
+	fireball.effects.append(damage_effect)
+	
+	var dot_effect = DamageEffectResource.new()
+	dot_effect.damage = 5
+	dot_effect.damage_type = "fire"
+	dot_effect.is_dot = true
+	dot_effect.dot_duration = 3.0
+	dot_effect.dot_tick_rate = 1.0
+	fireball.effects.append(dot_effect)
 	
 	cards[fireball.id] = fireball
 	
@@ -54,11 +62,11 @@ func _create_fallback_cards():
 	var ice_spike = CardResource.new()
 	ice_spike.id = "ice_spike"
 	ice_spike.name = "Ice Spike"
-	ice_spike.type = "attack"
+	ice_spike.type = CardResource.CardType.ATTACK
 	ice_spike.energy_cost = 20
 	ice_spike.description = "Cast an ice spike that deals {damage} ice damage and slows enemies by {debuff_percent}% for {duration}s."
 	ice_spike.texture_path = "res://assets/cards/ice_spike.png"
-	ice_spike.rarity = "common"
+	ice_spike.rarity = CardResource.Rarity.COMMON
 	
 	var ice_damage_effect = DamageEffectResource.new()
 	ice_damage_effect.damage = 30
@@ -81,11 +89,11 @@ func _create_fallback_cards():
 	var healing_brew = CardResource.new()
 	healing_brew.id = "healing_brew"
 	healing_brew.name = "Healing Brew"
-	healing_brew.type = "utility"
+	healing_brew.type = CardResource.CardType.UTILITY
 	healing_brew.energy_cost = 25
 	healing_brew.description = "Drink a potion that restores {heal_amount} health."
 	healing_brew.texture_path = "res://assets/cards/healing_brew.png"
-	healing_brew.rarity = "common"
+	healing_brew.rarity = CardResource.Rarity.COMMON
 	
 	var heal_effect = UtilityEffectResource.new()
 	heal_effect.utility_type = UtilityEffectResource.UtilityType.HEAL
@@ -99,11 +107,11 @@ func _create_fallback_cards():
 	var dash = CardResource.new()
 	dash.id = "dash"
 	dash.name = "Dash"
-	dash.type = "utility"
+	dash.type = CardResource.CardType.UTILITY
 	dash.energy_cost = 10
 	dash.description = "Quickly dash {distance} units forward, avoiding enemies."
 	dash.texture_path = "res://assets/cards/dash.png"
-	dash.rarity = "common"
+	dash.rarity = CardResource.Rarity.COMMON
 	
 	var dash_effect = UtilityEffectResource.new()
 	dash_effect.utility_type = UtilityEffectResource.UtilityType.MOVEMENT
@@ -118,11 +126,11 @@ func _create_fallback_cards():
 	var forest_shield = CardResource.new()
 	forest_shield.id = "forest_shield"
 	forest_shield.name = "Forest Shield"
-	forest_shield.type = "defense"
+	forest_shield.type = CardResource.CardType.DEFENSE
 	forest_shield.energy_cost = 20
 	forest_shield.description = "Summon a shield of vines that absorbs {shield_amount} damage for {duration}s."
 	forest_shield.texture_path = "res://assets/cards/forest_shield.png"
-	forest_shield.rarity = "uncommon"
+	forest_shield.rarity = CardResource.Rarity.UNCOMMON
 	
 	var shield_effect = UtilityEffectResource.new()
 	shield_effect.utility_type = UtilityEffectResource.UtilityType.SHIELD
@@ -140,16 +148,16 @@ func get_card(card_id: String) -> CardResource:
 		push_error("CardDatabase: Card not found with ID: " + card_id)
 		return null
 
-func get_cards_by_type(card_type: String) -> Array:
-	var result = []
+func get_cards_by_type(card_type: CardResource.CardType) -> Array[CardResource]:
+	var result: Array[CardResource] = []
 	for card_id in cards:
 		var card = cards[card_id]
 		if card.type == card_type:
 			result.append(card)
 	return result
 
-func get_cards_by_rarity(rarity: String) -> Array:
-	var result = []
+func get_cards_by_rarity(rarity: CardResource.Rarity) -> Array[CardResource]:
+	var result: Array[CardResource] = []
 	for card_id in cards:
 		var card = cards[card_id]
 		if card.rarity == rarity:
@@ -163,7 +171,7 @@ func get_random_card() -> CardResource:
 		return cards[keys[random_index]]
 	return null
 
-func get_random_card_by_rarity(rarity: String) -> CardResource:
+func get_random_card_by_rarity(rarity: CardResource.Rarity) -> CardResource:
 	var filtered_cards = get_cards_by_rarity(rarity)
 	if filtered_cards.size() > 0:
 		return filtered_cards[randi() % filtered_cards.size()]

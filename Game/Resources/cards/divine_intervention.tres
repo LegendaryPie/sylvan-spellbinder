@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Game/Resources/Scripts/CardResource.gd" id="1_script"]
+[ext_resource type="Resource" path="res://Game/Resources/cards/effects/divine_heal_effect.tres" id="2_effect"]
+
+[resource]
+script = ExtResource("1_script")
+id = "divine_intervention"
+name = "Divine Intervention"
+type = 2  # CardType.UTILITY
+energy_cost = 35
+description = "Channel divine energy to restore {value} health and cleanse all negative effects. Exhausts."
+texture_path = "res://assets/cards/divine_intervention.png"
+rarity = 3  # Rarity.LEGENDARY
+effects = [ExtResource("2_effect")]
+exhaust = true
+cooldown = 0.0
+cast_sound_path = "res://assets/sounds/cards/divine.wav"
+cast_particles_path = "res://assets/particles/divine.tscn"

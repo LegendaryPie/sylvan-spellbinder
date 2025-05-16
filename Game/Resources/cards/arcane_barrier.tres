@@ -7,11 +7,11 @@
 script = ExtResource("1_script")
 id = "arcane_barrier"
 name = "Arcane Barrier"
-type = "defense"
+type = 1
 energy_cost = 2
 description = "Create a magical shield that absorbs 30 damage."
 texture_path = "res://Assets/icon.svg"
-rarity = "uncommon"
+rarity = 1
 effects = [ExtResource("2_effect")]
 cooldown = 3.0
 cast_sound_path = "res://Assets/sounds/cards/shield.wav"

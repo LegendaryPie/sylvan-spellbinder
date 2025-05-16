@@ -2,14 +2,28 @@
 class_name CardResource
 extends Resource
 
+enum CardType {
+	ATTACK,
+	DEFENSE,
+	UTILITY
+}
+
+enum Rarity {
+	COMMON,
+	UNCOMMON,
+	RARE,
+	LEGENDARY
+}
+
 @export var id: String = ""
 @export var name: String = "Card Name"
-@export var type: String = "attack" # attack, defense, utility
+@export var type: CardType = CardType.ATTACK
 @export var energy_cost: int = 10
 @export var description: String = "Card description goes here."
 @export var texture_path: String = "res://assets/cards/default_card.png"
-@export var rarity: String = "common" # common, uncommon, rare, legendary
+@export var rarity: Rarity = Rarity.COMMON
 @export var effects: Array[CardEffectResource] = []
+@export var exhaust: bool = false  # If true, card is removed from deck until room change
 
 # Optional card properties
 @export var cooldown: float = 0.0 # If the card needs a cooldown between uses

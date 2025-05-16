@@ -26,9 +26,14 @@ func generate_map():
 		child.queue_free()
 	map_nodes.clear()
 	
+	# Set map content size
+	map_content.custom_minimum_size = Vector2(800, 1200)  # Adjust these values based on your needs
+	
 	# Generate room layout
 	rooms = generate_floor_rooms(current_floor)
-		# Draw connections
+	_ensure_valid_paths()
+	
+	# Draw connections
 	for room in rooms:
 		for connected_room in room.typed_connections:
 			draw_connection(room, connected_room)
@@ -47,7 +52,7 @@ func generate_map():
 
 func generate_floor_rooms(floor_num: int) -> Array[RoomResource]:
 	var generated_rooms: Array[RoomResource] = []
-	var num_rows = 4
+	var num_rows = 7
 	var rooms_per_row = 3
 	var row_spacing = 1.0 / (num_rows - 1)
 	var col_spacing = 1.0 / (rooms_per_row + 1)
@@ -75,8 +80,6 @@ func generate_floor_rooms(floor_num: int) -> Array[RoomResource]:
 			
 			# Setup rewards based on room type and floor number
 			_assign_room_rewards(room, floor_num)
-			if room is BattleRoomResource:
-				room.generate_enemies()
 				
 			generated_rooms.append(room)
 		# Connect rooms between adjacent rows
@@ -97,7 +100,7 @@ func generate_floor_rooms(floor_num: int) -> Array[RoomResource]:
 				if randf() > 0.3 and possible_connections.size() > 1:  # 70% chance for second connection
 					room.connections.append(possible_connections[1])
 	
-	_ensure_valid_paths()
+	
 	return generated_rooms
 
 func create_random_room() -> RoomResource:
@@ -120,6 +123,7 @@ func create_random_room() -> RoomResource:
 		if roll <= running_total:
 			var room = BattleRoomResource.new() if type.type == RoomResource.RoomType.BATTLE or type.type == RoomResource.RoomType.ELITE else RoomResource.new()
 			room.type = type.type
+			room.setup_random()
 			return room
 	
 	return RoomResource.new()  # Fallback
@@ -129,8 +133,13 @@ func draw_connection(from_room: RoomResource, to_room: RoomResource):
 	line.default_color = LINE_COLOR
 	line.width = LINE_WIDTH
 	
-	var start_pos = from_room.position * map_content.size
-	var end_pos = to_room.position * map_content.size
+	var top_margin = 50  # Add margin from top
+	var usable_height = map_content.custom_minimum_size.y - (2 * top_margin)
+	
+	var start_pos = Vector2(from_room.position.x * map_content.custom_minimum_size.x, 
+						   top_margin + (from_room.position.y * usable_height))
+	var end_pos = Vector2(to_room.position.x * map_content.custom_minimum_size.x, 
+						 top_margin + (to_room.position.y * usable_height))
 	
 	line.add_point(start_pos)
 	line.add_point(end_pos)
@@ -140,7 +149,12 @@ func draw_connection(from_room: RoomResource, to_room: RoomResource):
 func create_room_node(room: RoomResource):
 	var room_node = ROOM_SCENE.instantiate()
 	rooms_container.add_child(room_node)
-	room_node.position = room.position * map_content.size
+	
+	var top_margin = 50  # Same margin as in draw_connection
+	var usable_height = map_content.custom_minimum_size.y - (2 * top_margin)
+	
+	room_node.position = Vector2(room.position.x * map_content.custom_minimum_size.x,
+							  top_margin + (room.position.y * usable_height))
 	room_node.setup(room)
 	room_node.room_clicked.connect(_on_room_clicked)
 	map_nodes[room] = room_node
@@ -239,10 +253,11 @@ func _ensure_valid_paths():
 			for other in rooms:
 				if visited[other] and other != room:
 					var distance = other.position.distance_to(room.position)
-					if distance < 0.4:  # Adjust this value to control max connection distance
+					if distance < 1:  # Adjust this value to control max connection distance
 						possible_connections.append(other)
 			
 			if possible_connections.size() > 0:
 				var connect_to = possible_connections[randi() % possible_connections.size()]
 				connect_to.connections.append(room)
+				room.connections.append(connect_to)
 				visited[room] = true

@@ -19,6 +19,7 @@ var is_menu_open: bool = false
 
 # Scene references
 @onready var dungeon_map_scene = preload("res://Game/Scenes/dungeon_map.tscn")
+@onready var completion_panel_scene = preload("res://Game/Scenes/completion_panel.tscn")
 var active_map: Node
 
 # Node references
@@ -59,10 +60,8 @@ func _initialize_game():
 	if enemy_manager:
 		enemy_manager.spawn_points = spawn_points_container.get_children()
 		enemy_manager.enemy_died.connect(_on_enemy_died)
-	
-	# Connect UI signals
-	if game_ui:
-		game_ui.return_to_map_requested.connect(_on_return_to_map_requested)
+
+		
 	
 	# Start with default game settings
 	current_score = 0
@@ -78,18 +77,19 @@ func _initialize_game():
 func show_dungeon_map():
 	in_room = false
 	
+	# Clean up any completion panels
+	for panel in get_tree().get_nodes_in_group("completion_panel"):
+		panel.queue_free()
+	
 	# Hide game UI elements
 	if game_ui:
 		game_ui.hide()
 	
-	# Remove existing map if any
-	if active_map:
-		active_map.queue_free()
-	
-	# Create and show new map
-	active_map = dungeon_map_scene.instantiate()
-	add_child(active_map)
-	active_map.room_selected.connect(_on_room_selected)
+	if !active_map:
+		# Create and show new map
+		active_map = dungeon_map_scene.instantiate()
+		add_child(active_map)
+		active_map.room_selected.connect(_on_room_selected)
 
 func _on_room_selected(room: RoomResource):
 	current_room = room
@@ -99,8 +99,7 @@ func enter_room(room: RoomResource):
 	current_room = room
 	in_room = true
 	
-	# Show game UI and hide map
-	toggle_game_view(true)
+
 	
 	match room.type:
 		RoomResource.RoomType.BATTLE, RoomResource.RoomType.ELITE, RoomResource.RoomType.BOSS:
@@ -110,6 +109,9 @@ func enter_room(room: RoomResource):
 			_apply_rest_bonus(room)
 		RoomResource.RoomType.TREASURE:
 			_give_treasure(room)
+			
+	# Show game UI and hide map
+	toggle_game_view(true)
 	
 	# Reset player state for new room
 	if player:
@@ -119,55 +121,44 @@ func _setup_battle(battle_room: BattleRoomResource):
 	# Clear any existing enemies
 	enemy_manager.clear_enemies()
 	
-	# Spawn enemies based on room configuration
-	for enemy_type in battle_room.enemy_types:
-		var enemy_data = enemy_database.get_enemy(enemy_type)
-		if enemy_data:
-			enemy_manager.spawn_enemy(enemy_data, _get_random_spawn_point())
+	if !battle_room.enemy_pool:
+		# Spawn enemies based on enemy types configuration
+		for enemy_type in battle_room.enemy_types:
+				enemy_manager.spawn_enemy(null, enemy_type)
+	else:
+		for enemy in battle_room.enemy_pool:
+			enemy_manager.spawn_enemy(enemy)
 
 func _apply_rest_bonus(room: RoomResource):
-	if room.health_bonus > 0:
+	if player and room.health_bonus > 0:
 		player.heal(room.health_bonus)
 	_complete_room()
 
-func _give_treasure(room: RoomResource):
-	if room.gold_reward > 0:
-		current_score += room.gold_reward
-	if room.artifact_reward:
-		# TODO: Implement artifact system
-		pass
+func _give_treasure(_room: RoomResource):
 	_complete_room()
 
 func _complete_room():
-	if current_room:
-		current_room.complete_room()
-		Events.emit_signal("room_completed", current_room)
+	if not current_room or not in_room:
+		return
+	
+	if get_tree().get_nodes_in_group("completion_panel").size() > 0:
+		return
 		
-		# Apply rewards
-		if current_room.gold_reward > 0:
-			current_score += current_room.gold_reward
-			Events.emit_signal("reward_earned", "gold", current_room.gold_reward)
-		
-		if current_room.health_bonus > 0:
-			Events.emit_signal("reward_earned", "health", current_room.health_bonus)
-		
-		if current_room.card_reward:
-			Events.emit_signal("reward_earned", "card", 1)
-			# TODO: Show card reward selection UI
-			pass
-		
-		if current_room.artifact_reward:
-			Events.emit_signal("reward_earned", "artifact", 1)
-		
-		# Check if floor is completed (boss defeated)
-		if current_room.type == RoomResource.RoomType.BOSS:
-			current_floor += 1
-			# Show floor completion UI and generate new floor
-			_on_floor_completed()
-		
-		current_room = null
-		in_room = false
-		Events.emit_signal("return_to_map_requested")
+	current_room.mark_completed()
+	Events.emit_signal("room_completed", current_room)
+	
+	# Show completion panel with rewards first
+	# First ensure all existing panels are freed
+	for panel in get_tree().get_nodes_in_group("completion_panel"):
+		panel.queue_free()
+	await get_tree().process_frame
+	
+	_show_completion_panel(current_room)
+	
+	# The rest of the rewards will be applied when the completion panel is closed
+	# (in _on_completion_panel_continue)
+
+
 
 func _get_random_spawn_point() -> Vector2:
 	if spawn_points.size() > 0:
@@ -180,6 +171,8 @@ func _setup_signals():
 	Events.player_died.connect(_on_player_died)
 	Events.card_played.connect(_on_card_played)
 	Events.enemy_died.connect(_on_enemy_died)
+	Events.return_to_map_requested.connect(_on_return_to_map_requested)
+	Events.room_completed.connect(_on_room_completed)
 	
 	if enemy_manager:
 		enemy_manager.enemy_spawned.connect(_on_enemy_spawned)
@@ -367,6 +360,7 @@ func return_to_main_menu():
 	# Change back to main menu scene
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://Game/Scenes/main_menu.tscn")
+	print("Changing to main menu")
 
 # Add a signal connection for the settings menu
 func _on_settings_menu_closed():
@@ -384,11 +378,11 @@ func toggle_game_view(show_game: bool):
 	# Toggle game UI elements
 	if game_ui:
 		game_ui.visible = show_game
-	
+
 	# Toggle map
 	if active_map:
 		active_map.visible = !show_game
-	
+		
 	# Toggle enemy manager visibility
 	if enemy_manager:
 		enemy_manager.visible = show_game
@@ -398,9 +392,8 @@ func toggle_game_view(show_game: bool):
 		player.visible = show_game
 
 func _on_return_to_map_requested():
-	if in_room and not is_paused:
-		show_dungeon_map()
-		toggle_game_view(false)
+	show_dungeon_map()
+	toggle_game_view(false)
 
 func _on_enemy_died(enemy):
 	# Update score
@@ -409,7 +402,7 @@ func _on_enemy_died(enemy):
 		_update_ui()
 	
 	# Check if room completion conditions are met
-	if current_room and (current_room.type == RoomResource.RoomType.BATTLE or 
+	if current_room and in_room and (current_room.type == RoomResource.RoomType.BATTLE or 
 		current_room.type == RoomResource.RoomType.ELITE or
 		current_room.type == RoomResource.RoomType.BOSS):
 		if enemy_manager and enemy_manager.get_enemy_count() == 0:
@@ -426,3 +419,169 @@ func _on_floor_completed():
 	if active_map:
 		active_map.current_floor = current_floor
 		active_map.generate_map()
+
+func _get_artifact_rarity_for_room(room: RoomResource) -> ArtifactResource.Rarity:
+	match room.type:
+		RoomResource.RoomType.ELITE:
+			return ArtifactResource.Rarity.ELITE
+		RoomResource.RoomType.TREASURE:
+			return ArtifactResource.Rarity.TREASURE
+		RoomResource.RoomType.BOSS:
+			return ArtifactResource.Rarity.BOSS
+		_:
+			return ArtifactResource.Rarity.NORMAL
+
+func _give_artifact_reward(rarity: ArtifactResource.Rarity):
+	if player:
+		var artifact_manager = player.find_child("ArtifactManager")
+		var artifact_database = player.find_child("ArtifactDatabase")
+		
+		if artifact_database and artifact_manager:
+			var artifact = artifact_database.get_random_artifact(rarity)
+			if artifact:
+				artifact_manager.add_artifact(artifact)
+				Events.emit_signal("reward_earned", "artifact", 1)
+
+func _show_completion_panel(room: RoomResource):
+	# Safety checks
+	if not room:
+		push_error("Attempted to show completion panel for null room")
+		return
+	
+	var panel = completion_panel_scene.instantiate()
+		
+	panel.name = "CompletionPanel"
+	panel.add_to_group("completion_panel")
+	
+	# Add panel to UI layer
+	if game_ui:
+		game_ui.add_child(panel)
+	else:
+		add_child(panel)
+	
+	# Connect signals first before setup
+	if not panel.is_connected("continue_pressed", _on_completion_panel_continue):
+		panel.continue_pressed.connect(_on_completion_panel_continue, CONNECT_ONE_SHOT)
+	if not panel.is_connected("artifact_selected", _on_artifact_selected):
+		panel.artifact_selected.connect(_on_artifact_selected)
+	
+	var rewards = []
+	if room.gold_reward > 0:
+		rewards.append("Gold: %d" % room.gold_reward)
+	if room.health_bonus > 0:
+		rewards.append("Healing: %d" % room.health_bonus)
+		
+	# Add card reward to rewards list if applicable
+	if room.card_reward:
+		rewards.append("New Card")
+		
+	# Get artifact rewards if applicable
+	var artifacts = []
+	if room.artifact_reward:
+		var rarity = _get_artifact_rarity_for_room(room)
+		var artifact_database = player.find_child("ArtifactDatabase")
+		# Get 3 random artifacts of the appropriate rarity for the player to choose from
+		for i in range(3):
+			var artifact = artifact_database.get_random_artifact(rarity)
+			if artifact:
+				artifacts.append(artifact)
+	
+	# Set up the panel based on room type
+	match room.type:
+		RoomResource.RoomType.BATTLE, RoomResource.RoomType.ELITE:
+			panel.setup_room_completion(room.type_name, rewards, artifacts)
+		RoomResource.RoomType.BOSS:
+			panel.setup_floor_completion(current_floor)
+		_:
+			panel.setup_room_completion(room.type_name, rewards, artifacts)
+
+func _on_artifact_selected(artifact):
+	var artifact_manager = player.find_child("ArtifactManager")
+	if artifact_manager:
+		artifact_manager.add_artifact(artifact)
+		Events.emit_signal("artifact_obtained", artifact)
+
+func _on_completion_panel_continue():
+	# Safety check
+	if not current_room:
+		push_error("No current room when completion panel continued")
+		return
+		
+	# Apply the room's rewards now that the panel is closing
+	if current_room.gold_reward > 0:
+		current_score += current_room.gold_reward
+		Events.emit_signal("reward_earned", "gold", current_room.gold_reward)
+	
+	if current_room.health_bonus > 0 and player:
+		player.heal(current_room.health_bonus)
+		Events.emit_signal("reward_earned", "health", current_room.health_bonus)
+	
+	if current_room.card_reward:
+		Events.emit_signal("reward_earned", "card", 1)
+	
+	# Update UI
+	_update_ui()
+	
+	# Check if floor is completed (boss defeated)
+	if current_room.type == RoomResource.RoomType.BOSS:
+		current_floor += 1
+		# Show floor completion UI and generate new floor
+		_on_floor_completed()
+	
+	# Clear current room reference and update states
+	current_room = null
+	in_room = false
+	if active_map:
+		active_map.update_room_states()
+	
+	# Return to map (this will handle UI toggling and cleanup)
+	show_dungeon_map()
+	toggle_game_view(false)
+
+func _on_room_completed():
+	if current_room:
+		var completion_panel = completion_panel_scene.instantiate()
+		add_child(completion_panel)
+		
+		# Generate rewards based on room type
+		var rewards = []
+		match current_room.type:
+			"normal":
+				rewards.append("Gold: 50")
+			"elite":
+				rewards.append("Gold: 100")
+			"boss":
+				rewards.append("Gold: 200")
+				rewards.append("Max Health +10")
+		
+		# Show completion panel with rewards
+		completion_panel.setup_room_completion(current_room.type, rewards)
+		
+		# Connect signals
+		completion_panel.card_selected.connect(_on_card_reward_selected)
+		completion_panel.continue_pressed.connect(_on_completion_continue)
+
+func _on_card_reward_selected(card: CardResource):
+	# Create an instance of the card
+	var card_instance = card.create_instance()
+	
+	# Add the card to the player's deck
+	card_deck_manager.add_card_to_deck(card_instance)
+	
+	# Notify the player
+	Events.show_floating_text.emit(
+		"New Card: %s" % card.name,
+		player.global_position + Vector2(0, -50),
+		Color(1, 0.8, 0.2)  # Gold color
+	)
+
+func _on_completion_continue():
+	# Return to map or next floor
+	if active_map:
+		active_map.show()  # Show the map again
+	
+	in_room = false
+	current_room = null
+	
+	# Reset player for next room
+	player.reset_for_room()

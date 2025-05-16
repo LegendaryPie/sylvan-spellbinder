@@ -16,6 +16,16 @@ enum RoomType {
 @export var completed: bool = false
 @export var available: bool = false  # Whether this room can be selected
 
+var type_name: String:
+	get:
+		match type:
+			RoomType.BATTLE: return "Battle"
+			RoomType.ELITE: return "Elite"
+			RoomType.TREASURE: return "Treasure"
+			RoomType.REST: return "Rest"
+			RoomType.BOSS: return "Boss"
+			_: return "Unknown"
+
 # Store connections to other rooms
 @export var connections: Array = []  # Can't use Array[RoomResource] due to cyclic reference
 var typed_connections: Array[RoomResource]:
@@ -63,6 +73,15 @@ func setup_rewards():
 			gold_reward = randi_range(80, 100)
 			card_reward = true
 			artifact_reward = true
+
+func setup_random():
+	if type:
+		match type:
+			RoomType.TREASURE:
+				title = "Random"
+			RoomType.REST:
+				title = "Random"
+				
 
 func complete_room():
 	completed = true
