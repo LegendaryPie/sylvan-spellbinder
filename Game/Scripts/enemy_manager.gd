@@ -46,7 +46,8 @@ func spawn_enemy():
 	
 	# Select enemy type based on weights
 	var enemy_type = _select_enemy_type()
-	var enemy_resource = enemy_database.get_enemy(enemy_type)
+	var enemy_of_type = enemy_database.get_enemies_by_type(enemy_type)
+	var enemy_resource = enemy_of_type[randi() % enemy_of_type.size()]
 	
 	if enemy_resource:
 		var enemy_instance = enemy_scene.instantiate()

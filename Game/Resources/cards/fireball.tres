@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://dykequugjwatu"]
 
-[ext_resource type="Script" path="res://Game/Resources/Scripts/CardResource.gd" id="1_script"]
-[ext_resource type="Resource" path="res://Game/Resources/cards/effects/fireball_effect.tres" id="2_effect"]
+[ext_resource type="Script" uid="uid://bhqbkglgfrscv" path="res://Game/Resources/Scripts/CardEffectResource.gd" id="1_1onef"]
+[ext_resource type="Script" uid="uid://ccmt0f8s7h8na" path="res://Game/Resources/Scripts/CardResource.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://2lcsb3ftxdv5" path="res://Game/Resources/cards/effects/fireball_effect.tres" id="2_effect"]
 
 [resource]
 script = ExtResource("1_script")
@@ -12,7 +13,7 @@ energy_cost = 3
 description = "Launch a ball of fire that explodes on impact, dealing 25 fire damage and burning enemies over time."
 texture_path = "res://Assets/icon.svg"
 rarity = "uncommon"
-effects = [ExtResource("2_effect")]
+effects = Array[ExtResource("1_1onef")]([ExtResource("2_effect")])
 cooldown = 1.0
 cast_sound_path = "res://Assets/sounds/cards/fireball.wav"
 cast_particles_path = "res://Assets/particles/fire.tscn"

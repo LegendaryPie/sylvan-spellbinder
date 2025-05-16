@@ -14,6 +14,10 @@ extends Resource
 @export var score_value: int = 10
 @export var texture_path: String = "res://assets/enemies/default_enemy.png"
 
+# Ranged attack properties
+@export var is_ranged: bool = false
+@export var projectile_speed: float = 200.0
+
 # Optional properties
 @export var special_abilities: Array[String] = []
 @export var resistances: Dictionary = {}  # damage_type: resistance_percentage

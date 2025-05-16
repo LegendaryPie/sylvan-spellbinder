@@ -48,7 +48,7 @@ func save_settings():
 
 func apply_settings():
 	# Audio settings
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), 
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"),
 		linear_to_db(master_volume.value))
 		# Game settings will be stored in config and accessed when needed
 	save_settings()
@@ -60,10 +60,14 @@ func _on_apply_pressed():
 func _on_main_menu_pressed():
 	# Save settings before leaving
 	save_settings()
+	
 	# Get the game scene node
 	var game = get_parent()
-	if game:
+	if game and game.has_method("return_to_main_menu"):
 		game.return_to_main_menu()
+	else:
+		# If we're in the main menu, just change scene directly
+		get_tree().change_scene_to_file("res://Game/Scenes/main_menu.tscn")
 	queue_free()
 
 func _on_close_pressed():

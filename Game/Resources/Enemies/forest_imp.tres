@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="EnemyResource" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EnemyResource" load_steps=2 format=3 uid="uid://b6n6jwuhw4hcn"]
 
-[ext_resource type="Script" path="res://Game/Resources/Scripts/EnemyResource.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bdk74v282ruog" path="res://Game/Resources/Scripts/EnemyResource.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")
@@ -10,8 +10,11 @@ type = "basic"
 max_health = 50
 damage = 10
 speed = 100.0
-detection_range = 150.0
-attack_range = 30.0
+detection_range = 500.0
+attack_range = 75.0
 attack_cooldown = 1.0
 score_value = 10
 texture_path = "res://Assets/icon.svg"
+special_abilities = Array[String]([])
+resistances = {}
+loot_table = {}

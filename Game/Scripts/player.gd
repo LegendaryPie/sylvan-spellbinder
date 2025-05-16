@@ -109,11 +109,13 @@ func _handle_energy_regen(delta):
 		_emit_energy_changed()
 
 func _handle_card_draw_cooldown(delta):
-	if !can_draw:
 		draw_timer += delta
 		if draw_timer >= draw_cooldown:
-			can_draw = true
-			draw_timer = 0.0
+			for i in range(cards_per_draw):
+				var drawn = card_manager.draw_card()
+				if not drawn:
+					break
+				draw_timer = 0.0
 
 func _handle_invulnerability(delta):
 	if is_invulnerable:
@@ -171,7 +173,7 @@ func play_card(card_index: int) -> bool:
 			targeting_area.show()
 			
 		# Show targeting UI hint
-		Events.show_targeting_hint.emit(card.name)
+		Events.show_targeting_hint.emit(card.name, true)
 		return true
 	
 	# For non-targeting cards, execute immediately
@@ -190,14 +192,6 @@ func play_card(card_index: int) -> bool:
 	card_manager.discard_card(card_index)
 	Events.card_played.emit(card.name, card_index)
 	
-	# Draw a new card if cooldown allows
-	if can_draw:
-		for i in range(cards_per_draw):
-			var drawn = card_manager.draw_card()
-			if not drawn:
-				break
-		can_draw = false
-		draw_timer = 0.0
 	
 	return true
 
@@ -214,6 +208,7 @@ func take_damage(amount):
 		else:
 			remaining_damage -= shield_amount
 			shield_amount = 0
+		_emit_shield_changed()
 	
 	# Apply remaining damage to health
 	if remaining_damage > 0:
@@ -252,6 +247,7 @@ func _on_hurt_box_area_entered(area):
 # Add shield to the player
 func add_shield(amount: int, duration: float = 0.0):
 	shield_amount += amount
+	_emit_shield_changed()
 	
 	# If duration is specified, create a timer to remove the shield
 	if duration > 0:
@@ -260,6 +256,7 @@ func add_shield(amount: int, duration: float = 0.0):
 
 func _on_shield_expired(amount: int):
 	shield_amount = max(0, shield_amount - amount)
+	_emit_shield_changed()
 
 # Apply buff to the player (speed, damage, etc.)
 func apply_buff(stat_name: String, value: float, duration: float):
@@ -279,6 +276,9 @@ func _on_speed_buff_expired(original_speed: float):
 
 func _emit_health_changed():
 	Events.player_health_changed.emit(health, max_health)
+
+func _emit_shield_changed():
+	Events.player_shield_changed.emit(shield_amount)
 
 func _emit_energy_changed():
 	Events.player_energy_changed.emit(energy, max_energy)
@@ -318,7 +318,7 @@ func _update_targeting_visual():
 			var circle_shape = collision_shape.shape as CircleShape2D
 			if circle_shape:
 				circle_shape.radius = targeting_radius
-				target_sprite.scale = Vector2(targeting_radius / 32.0, targeting_radius / 32.0)  # Assuming icon.svg is 64x64
+				target_sprite.scale = Vector2(targeting_radius / 64.0, targeting_radius / 64.0)  # Assuming icon.svg is 64x64
 
 func _unhandled_input(event):
 	if is_targeting:
@@ -366,6 +366,7 @@ func _confirm_targeting():
 		targeting_card.execute(self, target_pos, direction)
 		card_manager.discard_card(targeting_card_index)
 		Events.card_played.emit(targeting_card.name, targeting_card_index)
+		Events.show_targeting_hint.emit(targeting_card.name, false)
 		
 		# Draw a new card if cooldown allows
 		if can_draw:
@@ -381,3 +382,15 @@ func _confirm_targeting():
 		targeting_area.hide()
 		targeting_card = null
 		targeting_card_index = -1
+
+func reset_for_room():
+	# Reset energy to max
+	energy = max_energy
+	Events.emit_signal("player_energy_changed", energy, max_energy)
+	
+	# Clear any temporary buffs or status effects
+	shield = 0
+	Events.emit_signal("player_shield_changed", shield)
+	
+	# Reset position to starting point
+	position = Vector2(get_viewport_rect().size.x / 2, get_viewport_rect().size.y * 0.75)

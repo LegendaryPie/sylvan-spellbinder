@@ -39,8 +39,11 @@ func execute(caster, target_position: Vector2, direction: Vector2):
 					_apply_movement_effect(caster, direction, value, movement_speed)
 			
 			UtilityType.SHIELD:
-				effect_instance.set_shield_properties(value, duration)
-				
+				if effect_instance.has_method("set_shield_properties"):
+					effect_instance.set_shield_properties(value, duration)
+				# Apply shield directly to caster
+				if caster.has_method("add_shield"):
+					caster.add_shield(value, duration)
 			UtilityType.BUFF:
 				effect_instance.set_buff_properties(value, duration, buff_multiplier)
 				

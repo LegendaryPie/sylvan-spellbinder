@@ -13,6 +13,9 @@ script = ExtResource("1_qxrlw")
 
 [node name="Player" parent="." instance=ExtResource("2_wrm1d")]
 position = Vector2(640, 360)
+max_energy = 10.0
+energy_regen_rate = 1.0
+draw_cooldown = 2.0
 
 [node name="EnemyManager" type="Node" parent="."]
 script = ExtResource("enemy_manager")
@@ -29,13 +32,13 @@ script = ExtResource("enemy_database")
 position = Vector2(100, 100)
 
 [node name="Marker2D2" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(1180, 100)
+position = Vector2(1000, 100)
 
 [node name="Marker2D3" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(100, 620)
+position = Vector2(100, 500)
 
 [node name="Marker2D4" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(1180, 620)
+position = Vector2(1000, 500)
 
 [node name="GameUI" parent="." instance=ExtResource("4_u5k3p")]
 

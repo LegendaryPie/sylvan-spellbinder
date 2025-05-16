@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://b7xnybq1bvr44"]
+[gd_scene load_steps=7 format=3 uid="uid://b7xnybq1bvr44"]
 
 [ext_resource type="Script" uid="uid://bdrh462bb1f42" path="res://Game/Scripts/game_ui.gd" id="1_v3k4p"]
 [ext_resource type="PackedScene" uid="uid://lumi8otsboig" path="res://Game/Scenes/card_ui.tscn" id="2_w4k5p"]
@@ -6,6 +6,9 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.6, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
+bg_color = Color(0.2, 0.7, 1, 0.8)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
 bg_color = Color(0, 0.6, 1, 1)
@@ -42,6 +45,34 @@ layout_mode = 2
 theme_override_styles/fill = SubResource("StyleBoxFlat_1")
 value = 100.0
 show_percentage = false
+
+[node name="ShieldBar" type="ProgressBar" parent="TopBar/MarginContainer/HBoxContainer/HealthBar"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/fill = SubResource("StyleBoxFlat_3")
+max_value = 1.0
+show_percentage = false
+
+[node name="ShieldLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/HealthBar"]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = -6.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+horizontal_alignment = 1
 
 [node name="HealthLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/HealthBar"]
 layout_mode = 1
@@ -139,3 +170,14 @@ offset_bottom = 40.0
 grow_horizontal = 2
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="MapButton" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 40.0
+grow_horizontal = 0
+text = "Return to Map"

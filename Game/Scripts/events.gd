@@ -10,8 +10,14 @@ signal game_resumed
 signal game_over(score)
 signal level_completed(level)
 
+# Map and progression
+signal floor_completed(floor_num)
+signal room_completed(room)
+signal reward_earned(reward_type, amount)
+
 # Player events
 signal player_health_changed(current_health: int, max_health: int)
+signal player_shield_changed(current_shield: int)
 signal player_energy_changed(current_energy: float, max_energy: float)
 signal player_died
 

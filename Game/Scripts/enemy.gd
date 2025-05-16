@@ -14,6 +14,9 @@ var target: Node2D = null
 var current_state: int = State.IDLE
 var attack_timer: float = 0.0
 
+# Projectile variables
+var projectile_scene: PackedScene = null
+
 enum State {
 	IDLE,
 	CHASE,
@@ -51,6 +54,12 @@ func _ready():
 		health_bar.max_value = health
 		health_bar.value = health
 		health_bar.modulate = Color(1, 0, 0)  # Red health bar
+	
+	# Load projectile scene if this is a ranged enemy type
+	if resource and "is_ranged" in resource and resource.is_ranged:
+		projectile_scene = load("res://Game/Scenes/projectile.tscn")
+		if not projectile_scene:
+			push_error("Enemy: Failed to load projectile scene")
 
 func _initialize_from_resource():
 	health = resource.max_health
@@ -108,19 +117,27 @@ func _handle_chase_state(_delta):
 	
 	var distance_to_target = global_position.distance_to(target.global_position)
 	
-	# Move towards target only if outside attack range + small buffer
-	if distance_to_target > resource.attack_range + 10.0:
-		# Move towards target
-		var direction = (target.global_position - global_position).normalized()
-		velocity = direction * resource.speed
+	# For ranged enemies, maintain distance
+	if resource and "is_ranged" in resource and resource.is_ranged:
+		var ideal_range = resource.attack_range * 0.8
+		if distance_to_target < ideal_range:
+			# Back away from target
+			velocity = (global_position - target.global_position).normalized() * resource.speed
+		elif distance_to_target > resource.attack_range:
+			# Move closer to target
+			velocity = (target.global_position - global_position).normalized() * resource.speed
+		else:
+			velocity = Vector2.ZERO
+			current_state = State.ATTACK
 	else:
-		# If we're too close, slightly back away
-		velocity = (global_position - target.global_position).normalized() * (resource.speed * 0.5)
-	
-	# Check if in attack range
-	if distance_to_target <= resource.attack_range:
-		current_state = State.ATTACK
-		attack_timer = 0.0
+		# Melee enemy behavior
+		if distance_to_target > resource.attack_range - 5.0:
+			# Move towards target
+			var direction = (target.global_position - global_position).normalized()
+			velocity = direction * resource.speed
+		else:
+			current_state = State.ATTACK
+			velocity = Vector2.ZERO
 
 func _handle_attack_state(delta):
 	velocity = Vector2.ZERO
@@ -136,11 +153,35 @@ func _handle_attack_state(delta):
 
 func _handle_stunned_state(_delta):
 	velocity = Vector2.ZERO
-	# Implement stun duration and recovery
 
 func _perform_attack():
-	if target and target.has_method("take_damage"):
-		target.take_damage(resource.damage)
+	if not target:
+		return
+		
+	if resource and "is_ranged" in resource and resource.is_ranged:
+		_shoot_projectile()
+	else:
+		if target.has_method("take_damage"):
+			target.take_damage(resource.damage)
+
+func _shoot_projectile():
+	if not projectile_scene or not target:
+		return
+		
+	var projectile = projectile_scene.instantiate()
+	if projectile:
+		# Add projectile to the scene
+		get_tree().current_scene.add_child(projectile)
+		
+		# Calculate direction to target
+		var direction = (target.global_position - global_position).normalized()
+		
+		# Initialize projectile
+		projectile.initialize(
+			global_position,
+			direction,
+			resource.damage
+		)  # Position, direction, damage
 
 func take_damage(amount: int):
 	if is_dead:

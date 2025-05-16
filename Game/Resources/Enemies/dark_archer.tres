@@ -1,22 +1,22 @@
-[gd_resource type="Resource" script_class="EnemyResource" load_steps=2 format=3 uid="uid://bwjav7p11l8jn"]
+[gd_resource type="Resource" script_class="EnemyResource" load_steps=2 format=3 uid="uid://cgm6x58ae5prl"]
 
 [ext_resource type="Script" uid="uid://bdk74v282ruog" path="res://Game/Resources/Scripts/EnemyResource.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")
-id = "elite"
-name = "Dark Wizard"
-type = "elite"
-max_health = 150
-damage = 25
-speed = 80.0
-detection_range = 200.0
-attack_range = 100.0
+id = "archer"
+name = "Dark Archer"
+type = "basic"
+max_health = 75
+damage = 15
+speed = 120.0
+detection_range = 250.0
+attack_range = 200.0
 attack_cooldown = 2.0
-score_value = 50
+score_value = 30
 texture_path = "res://Assets/icon.svg"
 is_ranged = true
-projectile_speed = 200.0
+projectile_speed = 250.0
 special_abilities = Array[String]([])
 resistances = {}
 loot_table = {}

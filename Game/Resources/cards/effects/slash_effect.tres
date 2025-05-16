@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DamageEffectResource" load_steps=2 format=3 uid="uid://d835k4v3nhk2"]
+[gd_resource type="Resource" script_class="DamageEffectResource" load_steps=2 format=3 uid="uid://dm80j6j14mqw0"]
 
 [ext_resource type="Script" uid="uid://cj8lvo4kaq356" path="res://Game/Resources/Scripts/CardEffectsScripts/DamageEffectResource.gd" id="1_script"]
 
@@ -7,7 +7,7 @@ script = ExtResource("1_script")
 damage = 15
 damage_type = "physical"
 is_area_effect = true
-radius = 10.0
+radius = 50.0
 is_dot = false
 tick_interval = 1.0
 is_projectile = false
